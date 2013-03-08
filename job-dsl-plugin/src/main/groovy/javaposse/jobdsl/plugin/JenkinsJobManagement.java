@@ -6,12 +6,13 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
 import hudson.EnvVars;
 import hudson.XmlFile;
-import hudson.model.AbstractProject;
-import hudson.model.TopLevelItem;
+import hudson.model.*;
 import javaposse.jobdsl.dsl.*;
 import jenkins.model.Jenkins;
+
 import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.XMLUnit;
+
 
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
@@ -30,6 +31,7 @@ public final class JenkinsJobManagement extends AbstractJobManagement {
     Jenkins jenkins = Jenkins.getInstance();
     EnvVars envVars;
     Set<GeneratedJob> modifiedJobs;
+    ItemGroup groupName;
 
     JenkinsJobManagement() {
         super();
@@ -37,10 +39,11 @@ public final class JenkinsJobManagement extends AbstractJobManagement {
         modifiedJobs = Sets.newHashSet();
     }
 
-    public JenkinsJobManagement(PrintStream outputLogger, EnvVars envVars) {
+    public JenkinsJobManagement(PrintStream outputLogger, EnvVars envVars, ItemGroup groupName) {
         super(outputLogger);
         this.envVars = envVars;
         modifiedJobs = Sets.newHashSet();
+        this.groupName = groupName;
     }
 
     @Override
@@ -75,7 +78,8 @@ public final class JenkinsJobManagement extends AbstractJobManagement {
 
         validateUpdateArgs(jobName, config);
 
-        AbstractProject<?,?> project = (AbstractProject<?,?>) jenkins.getItemByFullName(jobName);
+        //AbstractProject<?,?> project = (AbstractProject<?,?>) jenkins.getItemByFullName(jobName);
+        AbstractProject<?, ?> project = (AbstractProject<?, ?>) jenkins.getItem(jobName, groupName, Item.class);
         Jenkins.checkGoodName(jobName);
 
         if (project == null) {
@@ -95,7 +99,7 @@ public final class JenkinsJobManagement extends AbstractJobManagement {
         LOGGER.log(Level.FINE, String.format("Looking up Job %s", jobName));
         String jobXml = "";
 
-        AbstractProject<?,?> project = (AbstractProject<?,?>) jenkins.getItem(jobName);
+        AbstractProject<?,?> project = (AbstractProject<?,?>) jenkins.getItem(jobName, groupName, Item.class);
         if (project != null) {
             XmlFile xmlFile = project.getConfigFile();
             jobXml = xmlFile.asString();
@@ -148,7 +152,15 @@ public final class JenkinsJobManagement extends AbstractJobManagement {
 
         try {
             InputStream is = new ByteArrayInputStream(config.getBytes("UTF-8"));  // TODO confirm that we're using UTF-8
-            TopLevelItem item = jenkins.createProjectFromXML(jobName, is);
+
+            TopLevelItem item = null;
+            if ("".equals(groupName.getUrl())) {// if blank we are at root
+                item = jenkins.createProjectFromXML(jobName, is);
+            } else {
+                HierarchicalModelAdapter adapter = new HierarchicalModelAdapter(groupName);
+                item = adapter.createProjectFromXML(jobName,is);
+            }
+
             created = true;
         } catch (UnsupportedEncodingException ueex) {
             LOGGER.log(Level.WARNING, "Unsupported encoding used in config. Should be UTF-8.");
@@ -189,4 +201,5 @@ public final class JenkinsJobManagement extends AbstractJobManagement {
             return input.getTemplateName();
         }
     }
+
 }

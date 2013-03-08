@@ -54,6 +54,7 @@ public class DslScriptLoader {
 
             jp = (JobParent) script;
             jp.setJm(jobManagement);
+            jp.setRoot(createExternalRoot(scriptRequest.urlRoot.getHost()));
 
             binding.setVariable("jobFactory", jp);
 
@@ -112,9 +113,10 @@ public class DslScriptLoader {
                     String xml = job.getXml();
                     LOGGER.log(Level.FINE, String.format("Saving job %s as %s", job.getName(), xml));
                     boolean created = jp.getJm().createOrUpdateConfig(job.getName(), xml, ignoreExisting);
-                    GeneratedJob gj = new GeneratedJob(job.getTemplateName(), job.getName(), created);
+                    GeneratedJob gj = new GeneratedJob(job.getTemplateName(), job.getName(), jp.getRoot(), created);
                     generatedJobs.add(gj);
                 } catch( Exception e) {  // org.xml.sax.SAXException, java.io.IOException
+                    e.printStackTrace(System.out);
                     if (e instanceof RuntimeException) {
                         throw ((RuntimeException) e);
                     } else {
@@ -148,5 +150,15 @@ public class DslScriptLoader {
         config.setOutput( new PrintWriter(jobManagement.getOutputStream())); // This seems to do nothing
         return config;
     }
+
+    public static String createExternalRoot(String hostURL) { // move this somewhere else
+        StringBuilder externalURLRoot = new StringBuilder();
+        if (hostURL.contains(".")) {
+            String baseURL = hostURL.substring(0,hostURL.lastIndexOf('.')+1); // leave on the last dot
+            externalURLRoot.append(baseURL.replace(".","/job/"));
+        }
+        return externalURLRoot.insert(0,"job/").toString();
+    }
+
 
 }

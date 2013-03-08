@@ -97,4 +97,24 @@ Callee.makeJob(this, 'test2')
 //
 //    }
 
+    def 'externally facing URL from root'() {
+        when:
+        String host  = "JOB"
+        then:
+        "job/" == DslScriptLoader.createExternalRoot(host)
+    }
+
+    def 'externally facing URL from folder'() {
+        when:
+        String host  = "FOLDER.JOB"
+        then:
+        "job/FOLDER/job/" == DslScriptLoader.createExternalRoot(host)
+    }
+
+    def 'externally facing URL from nested folder'() {
+        when:
+        String host  = "FOLDER1.FOLDER2.JOB"
+        then:
+        "job/FOLDER1/job/FOLDER2/job/" == DslScriptLoader.createExternalRoot(host)
+    }
 }

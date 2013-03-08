@@ -12,6 +12,7 @@ public abstract class JobParent extends Script {
     static String maven = 'maven'
 
     JobManagement jm;
+    String root;
     Set<Job> referencedJobs
 
     public JobParent() {
@@ -32,4 +33,5 @@ public abstract class JobParent extends Script {
         // This job can have .configure { } called on
         return job
     }
+
 }

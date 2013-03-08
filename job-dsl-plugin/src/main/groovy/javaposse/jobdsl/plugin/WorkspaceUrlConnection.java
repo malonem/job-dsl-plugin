@@ -19,12 +19,13 @@ public class WorkspaceUrlConnection extends URLConnection {
 
     @Override
     public void connect() throws IOException {
-        String jobName = url.getHost();
+        String jobName = getNestedJobName();
         Jenkins jenkins = Jenkins.getInstance();
+
         if(jenkins == null) {
             throw new IllegalStateException("Not in a running Jenkins");
         }
-        AbstractProject project = (AbstractProject) jenkins.getItem(jobName);
+        AbstractProject project = (AbstractProject) jenkins.getItemByFullName(jobName);
         FilePath workspace = project.getSomeWorkspace();
 
         String path = url.getFile();
@@ -54,5 +55,14 @@ public class WorkspaceUrlConnection extends URLConnection {
 
     public String getContentType() {
         return guessContentTypeFromName( url.getFile() );
+    }
+
+    public String getNestedJobName() {
+        String host = this.url.getHost();
+        if (host.contains(".")) {
+            return host.replace('.','/');
+        } else {
+            return host;
+        }
     }
 }

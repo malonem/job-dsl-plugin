@@ -2,6 +2,7 @@ package javaposse.jobdsl.plugin;
 
 /**
  * workspace://JOB-NAME/
+ * workspace://FOLDER.JOB-NAME/
  *
  * Don't need a URLStreamHandlerFactory because of the package name we're using.
  */

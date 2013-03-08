@@ -137,12 +137,16 @@ public class ExecuteDslScripts extends Builder {
         EnvVars env = build.getEnvironment(listener);
         env.putAll(build.getBuildVariables());
 
+        ItemGroup groupName = build.getProject().getParent();
+
         // We run the DSL, it'll need some way of grabbing a template config.xml and how to save it
-        JenkinsJobManagement jm = new JenkinsJobManagement(listener.getLogger(), env);
+        JenkinsJobManagement jm = new JenkinsJobManagement(listener.getLogger(), env, groupName);
 
         Set<GeneratedJob> freshJobs;
         String jobName = build.getProject().getName();
-        URL workspaceUrl = new URL(null, "workspace://" + jobName + "/", new WorkspaceUrlHandler());
+        Item item = Jenkins.getInstance().getItem(jobName,groupName,Item.class);
+        URL workspaceUrl = new URL(null, "workspace://" + item.getFullName().replace('/','.'), new WorkspaceUrlHandler());
+
         if(usingScriptText) {
             ScriptRequest request = new ScriptRequest(null, scriptText, workspaceUrl, ignoreExisting);
             freshJobs = DslScriptLoader.runDslEngine(request, jm);
@@ -299,7 +303,8 @@ public class ExecuteDslScripts extends Builder {
 
         // Update unreferenced jobs
         for(GeneratedJob removedJob: removed) {
-            AbstractProject removedProject = (AbstractProject) Jenkins.getInstance().getItem(removedJob.getJobName());
+            ItemGroup groupName = build.getProject().getParent();
+            AbstractProject removedProject = (AbstractProject) Jenkins.getInstance().getItem(removedJob.getJobName(),groupName,Item.class);
             if (removedProject != null && removedJobAction != RemovedJobAction.IGNORE) {
                 if (removedJobAction == RemovedJobAction.DELETE) {
                     try {

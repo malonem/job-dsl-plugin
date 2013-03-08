@@ -18,6 +18,14 @@ class WorkspaceProtocolSpec  extends Specification {
         url.file == '/dir/file.dsl'
     }
 
+    def 'determine nested job name'() {
+        when:
+        WorkspaceUrlConnection workspaceUrlConnection = new WorkspaceUrlConnection(new URL(null, "workspace://FOLDER.JOB/dir/file.dsl", new WorkspaceUrlHandler()))
+
+        then:
+        "FOLDER/JOB" == workspaceUrlConnection.getNestedJobName()
+    }
+
     def 'reference workspace form dsl'() {
         def resourcesDir = new File("src/test/resources")
         JobManagement jm = new FileJobManagement(resourcesDir)

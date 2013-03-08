@@ -13,7 +13,7 @@ if (my?.modifiedJobs != null) {
         ul(class:"jobList") {
             my.getModifiedJobs().each { af ->
                 li() {
-                    a(href:"${rootURL}/job/${af.jobName}/", class:"model-link tl-tr") { raw(af.jobName) }
+                    a(href:"${rootURL}/${af.jobContext ?: "job"}/${af.jobName}/", class:"model-link tl-tr") { raw(af.jobName) }
                 }
             }
         }

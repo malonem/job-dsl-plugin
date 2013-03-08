@@ -3,12 +3,14 @@ package javaposse.jobdsl.dsl;
 public class GeneratedJob implements Comparable {
     private String templateName;
     private String jobName;
+    private String jobContext;
     private boolean created;
 
-    public GeneratedJob(String templateName, String jobName, boolean created) {
+    public GeneratedJob(String templateName, String jobName, String jobContext, boolean created) {
         super();
         this.templateName = templateName;
         this.jobName = jobName;
+        this.jobContext = jobContext != null ? jobContext : "job";
     }
 
     public String getJobName() {
@@ -23,9 +25,15 @@ public class GeneratedJob implements Comparable {
         return created;
     }
 
+    public String getJobContext() {
+        return jobContext;
+    }
+
     @Override
     public int compareTo(Object o) {
         if (o instanceof GeneratedJob) {
+            int context = jobContext.compareTo(((GeneratedJob) o).getJobContext());
+            if (context != 0) return context;
             return jobName.compareTo(((GeneratedJob) o).getJobName());
         } else {
             return jobName.compareTo(o.toString());
@@ -38,6 +46,7 @@ public class GeneratedJob implements Comparable {
         int result = 1;
         result = prime * result + ((jobName == null) ? 0 : jobName.hashCode());
         result = prime * result + ((templateName == null) ? 0 : templateName.hashCode());
+        result = prime * result + ((jobContext == null) ? 0 : jobContext.hashCode());
         return result;
     }
 
@@ -60,6 +69,11 @@ public class GeneratedJob implements Comparable {
                 return false;
         } else if (!templateName.equals(other.templateName))
             return false;
+        if (jobContext == null) {
+            if (other.jobContext != null)
+                return false;
+        } else if (!jobContext.equals(other.jobContext))
+            return false;
         return true;
     }
 
@@ -69,6 +83,7 @@ public class GeneratedJob implements Comparable {
         return "GeneratedJob{" +
                 "jobName='" + jobName + "'" +
                 ", templateName=" + cleanTemplateName +
+                ", jobContext=" + jobContext +
                 "}";
     }
 }
